@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+</head>
+<body>
+    <h2>All Expenses</h2>
+
+    <a href="/add">Add New Expense</a>
+
+    <table border="1">
+        <tr>
+            <th>Date</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Description</th>
+        </tr>
+
+        {% for exp in expenses %}
+        <tr>
+            <td>{{ exp.date }}</td>
+            <td>{{ exp.category }}</td>
+            <td>{{ exp.amount }}</td>
+            <td>{{ exp.description }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

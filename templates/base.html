@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+{% if session.get("user") %}
+<nav class="navbar">
+    <div class="nav-left">💰 Expense Tracker</div>
+    <div class="nav-right">
+        <a href="/">Dashboard</a>
+        <a href="/add">Add Expense</a>
+        <a href="/history">History</a>
+        <a href="/insights">AI Insights</a>
+        <a href="/logout">Logout</a>
+    </div>
+</nav>
+{% endif %}
+
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

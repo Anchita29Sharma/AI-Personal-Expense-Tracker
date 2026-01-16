@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="dashboard-title">Expense History</h2>
+
+<form method="get" style="margin-bottom:20px;">
+    <input type="text" name="search" placeholder="Search category or description"
+           value="{{ search }}" style="padding:8px; width:250px;">
+    <button type="submit">Search</button>
+    <a href="/export" style="margin-left:20px;">⬇ Export CSV</a>
+</form>
+
+<div class="card">
+<table style="width:100%; border-collapse: collapse;">
+    <tr style="background:#f1f5f9;">
+        <th>Date</th>
+        <th>Category</th>
+        <th>Amount (₹)</th>
+        <th>Description</th>
+        <th>Action</th>
+    </tr>
+
+    {% for e in expenses %}
+    <tr style="border-bottom:1px solid #e5e7eb;">
+        <td>{{ e.date }}</td>
+        <td>{{ e.category }}</td>
+        <td>{{ e.amount }}</td>
+        <td>{{ e.description }}</td>
+        <td>
+            <a href="/edit/{{ e.id }}">✏ Edit</a> |
+            <a href="/delete/{{ e.id }}" onclick="return confirm('Delete this expense?')">🗑 Delete</a>
+
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<div style="margin-top:20px;">
+    {% if page > 1 %}
+        <a href="/history?page={{ page-1 }}&search={{ search }}">⬅ Previous</a>
+    {% endif %}
+    <a href="/history?page={{ page+1 }}&search={{ search }}" style="margin-left:20px;">Next ➡</a>
+</div>
+
+</div>
+{% endblock %}

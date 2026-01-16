@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="dashboard-title">Edit Expense</h2>
+
+<div class="card">
+<form method="post">
+    <input type="date" name="date" value="{{ expense.date }}">
+    <input type="text" name="category" value="{{ expense.category }}">
+    <input type="number" name="amount" value="{{ expense.amount }}">
+    <input type="text" name="description" value="{{ expense.description }}">
+    <button type="submit">Update</button>
+</form>
+</div>
+{% endblock %}

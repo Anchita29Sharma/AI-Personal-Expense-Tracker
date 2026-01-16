@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="dashboard-title">Dashboard</h2>
+
+<div class="card-grid">
+    <div class="card">
+        <h3>Total Expense</h3>
+        <p>₹ {{ total }}</p>
+    </div>
+
+    <div class="card">
+        <h3>Top Spending Category</h3>
+        <p>{{ category }}</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top:30px;">
+    <h3>Category-wise Expenses</h3>
+    <canvas id="categoryChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const data = {
+    labels: {{ chart_labels | safe }},
+    datasets: [{
+        label: 'Expenses',
+        data: {{ chart_values | safe }},
+        backgroundColor: [
+            '#2563eb', '#16a34a', '#dc2626', '#f59e0b', '#7c3aed'
+        ]
+    }]
+};
+
+new Chart(document.getElementById('categoryChart'), {
+    type: 'bar',
+    data: data
+});
+</script>
+{% endblock %}

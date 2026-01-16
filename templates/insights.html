@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="dashboard-title">AI Insights</h2>
+
+<div class="card-grid">
+
+    <div class="card alert-card">
+        <h3>Spending Insight</h3>
+        <p>{{ insight }}</p>
+    </div>
+
+    <div class="card prediction-card">
+        <h3>Predicted Next Expense</h3>
+        <p>₹ {{ prediction }}</p>
+    </div>
+
+</div>
+{% endblock %}

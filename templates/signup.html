@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="dashboard-title">Create Account</h2>
+
+<div class="card" style="max-width:400px; margin:auto;">
+<form method="post">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Sign Up</button>
+
+    {% if error %}
+        <p style="color:red; margin-top:10px;">{{ error }}</p>
+    {% endif %}
+</form>
+
+<p style="margin-top:15px;">
+    Already have an account?
+    <a href="/login">Login</a>
+</p>
+</div>
+{% endblock %}
