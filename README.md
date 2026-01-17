@@ -30,6 +30,21 @@ It helps users track expenses, analyze spending patterns, and get AI-powered ins
 ---
 
 ## 📂 Project Structure
+  AI-Personal-Expense-Tracker/
+│
+├── app.py
+├── expenses.db
+├── requirements.txt
+├── static/
+│ └── style.css
+├── templates/
+│ ├── dashboard.html
+│ ├── add_expense.html
+│ ├── history.html
+│ ├── insights.html
+│ ├── login.html
+│ └── signup.html
+└── .gitignore
 
 ## 📸 Screenshots
 
@@ -37,7 +52,7 @@ It helps users track expenses, analyze spending patterns, and get AI-powered ins
 ![Dashboard](screenshots/dashboard.png)
 
 ### Add Expense
-![Add Expense](screenshots/add_expense.png)
+![Add Expenses](screenshots/add_expenses.png)
 
 ### Expense History
 ![History](screenshots/history.png)
