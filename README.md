@@ -45,6 +45,12 @@ It helps users track expenses, analyze spending patterns, and get AI-powered ins
 ### AI Insights
 ![AI Insights](screenshots/ai_insights.png)
 
-
 ### Login
 ![Login](screenshots/login.png)
+
+## 🚀 How to Run Locally
+
+1. Clone the repository
+```bash
+git clone https://github.com/Anchita29Sharma/AI-Personal-Expense-Tracker.git
+cd AI-Personal-Expense-Tracker
