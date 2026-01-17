@@ -7,6 +7,24 @@ from sklearn.linear_model import LinearRegression
 app = Flask(__name__)
 app.secret_key = "expense-secret-key"
 
+def init_db():
+    conn = sqlite3.connect("expenses.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+
 # ---------------- DATABASE ----------------
 def get_db_connection():
     conn = sqlite3.connect("expenses.db")
@@ -271,4 +289,5 @@ def export():
 # ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(host ="0.0.0.0", port=5000)
+
 
