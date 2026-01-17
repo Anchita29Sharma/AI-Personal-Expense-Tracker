@@ -31,3 +31,20 @@ It helps users track expenses, analyze spending patterns, and get AI-powered ins
 
 ## 📂 Project Structure
 
+## 📸 Screenshots
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Add Expense
+![Add Expense](screenshots/add_expense.png)
+
+### Expense History
+![History](screenshots/history.png)
+
+### AI Insights
+![AI Insights](screenshots/ai_insights.png)
+
+
+### Login
+![Login](screenshots/login.png)
