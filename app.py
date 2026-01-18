@@ -3,7 +3,8 @@ import sqlite3
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
-import os
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 app = Flask(__name__)
 app.secret_key = "expense-secret-key"
@@ -55,8 +56,15 @@ def login():
 
         conn = get_db_connection()
         user = conn.execute(
-            "SELECT * FROM users WHERE username=? AND password=?",
-            (username, password)
+    "SELECT * FROM users WHERE username=?",
+    (username,)
+).fetchone()
+
+if user and check_password_hash(user["password"], password):
+    session["user"] = user["username"]
+    session["user_id"] = user["id"]
+    return redirect("/")
+
         ).fetchone()
         conn.close()
 
@@ -74,7 +82,8 @@ def login():
 def signup():
     if request.method == "POST":
         username = request.form["username"]
-        password = request.form["password"]
+        password = generate_password_hash(request.form["password"])
+
 
         conn = get_db_connection()
         try:
@@ -127,7 +136,7 @@ def dashboard():
         df["date"] = pd.to_datetime(df["date"])
         monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
         monthly_labels = [str(m) for m in monthly.index]
-        monthly_values = monthly.tolist()
+        monthly_values = monthly.values.tolist()
 
     return render_template(
         "dashboard.html",
@@ -285,4 +294,5 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
