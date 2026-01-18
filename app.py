@@ -56,19 +56,12 @@ def login():
 
         conn = get_db_connection()
         user = conn.execute(
-    "SELECT * FROM users WHERE username=?",
-    (username,)
-).fetchone()
-
-if user and check_password_hash(user["password"], password):
-    session["user"] = user["username"]
-    session["user_id"] = user["id"]
-    return redirect("/")
-
+            "SELECT * FROM users WHERE username=?",
+            (username,)
         ).fetchone()
         conn.close()
 
-        if user:
+        if user and check_password_hash(user["password"], password):
             session["user"] = user["username"]
             session["user_id"] = user["id"]
             return redirect("/")
@@ -76,6 +69,7 @@ if user and check_password_hash(user["password"], password):
             return render_template("login.html", error="Invalid credentials")
 
     return render_template("login.html")
+
 
 # ---------------- SIGNUP ----------------
 @app.route("/signup", methods=["GET", "POST"])
@@ -294,5 +288,6 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
