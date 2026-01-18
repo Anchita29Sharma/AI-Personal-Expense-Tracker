@@ -5,4 +5,5 @@ scikit-learn
 matplotlib
 seaborn
 gunicorn==21.2.0
+Werkzeug
 
