@@ -162,9 +162,30 @@ def history():
     if "user" not in session:
         return redirect("/login")
 
+    page = int(request.args.get("page", 1))
+    search = request.args.get("search", "")
+    limit = 5
+    offset = (page - 1) * limit
+
     conn = get_db_connection()
-    expenses = conn.execute("SELECT * FROM expenses ORDER BY date DESC").fetchall()
+    expenses = conn.execute(
+        """
+        SELECT * FROM expenses
+        WHERE category LIKE ? OR description LIKE ?
+        ORDER BY date DESC
+        LIMIT ? OFFSET ?
+        """,
+        (f"%{search}%", f"%{search}%", limit, offset)
+    ).fetchall()
     conn.close()
+
+    return render_template(
+        "history.html",
+        expenses=expenses,
+        page=page,
+        search=search
+    )
+
 
     return render_template("history.html", expenses=expenses)
 
@@ -208,3 +229,4 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
