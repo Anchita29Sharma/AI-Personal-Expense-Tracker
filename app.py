@@ -97,7 +97,7 @@ def dashboard():
     expenses = conn.execute("SELECT * FROM expenses").fetchall()
     conn.close()
 
-    total = sum(e["amount"] for e in expenses)
+    total = sum(e["amount"] for e in expenses) if expenses else 0
 
     categories = {}
     for e in expenses:
@@ -108,11 +108,10 @@ def dashboard():
     chart_labels = list(categories.keys())
     chart_values = list(categories.values())
 
-    # Monthly trend
-    df = pd.DataFrame(expenses, columns=expenses[0].keys()) if expenses else pd.DataFrame()
+    # SAFE monthly trend
     monthly_labels, monthly_values = [], []
-
-    if not df.empty:
+    if expenses:
+        df = pd.DataFrame(expenses, columns=expenses[0].keys())
         df["date"] = pd.to_datetime(df["date"])
         monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
         monthly_labels = [str(m) for m in monthly.index]
@@ -127,6 +126,7 @@ def dashboard():
         monthly_labels=monthly_labels,
         monthly_values=monthly_values
     )
+
 
 # ---------------- ADD EXPENSE ----------------
 @app.route("/add", methods=["GET", "POST"])
@@ -289,5 +289,6 @@ def export():
 # ---------------- RUN APP ----------------
 if __name__ == "__main__":
     app.run(host ="0.0.0.0", port=5000)
+
 
 
