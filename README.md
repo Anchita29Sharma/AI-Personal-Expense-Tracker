@@ -1,3 +1,6 @@
+## 🌐 Live Demo
+🔗 https://ai-personal-expense-tracker.onrender.com
+
 # AI Personal Expense Tracker 💸
 
 A full-stack AI-based personal expense tracker built using **Flask**, **SQLite**, and **Machine Learning**.  
