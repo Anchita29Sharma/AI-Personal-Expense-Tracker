@@ -212,22 +212,62 @@ def insights():
     conn.close()
 
     if df.empty:
-        return render_template("insights.html", insight="No data available", prediction="N/A")
+        return render_template(
+            "insights.html",
+            insight="No data available yet.",
+            prediction="N/A",
+            budget_msg="Add expenses to get insights.",
+            prediction_note=""
+        )
 
+    # ----- PREPARE DATA -----
+    df["date"] = pd.to_datetime(df["date"])
+
+    # ----- CATEGORY ANALYSIS -----
     category_sum = df.groupby("category")["amount"].sum()
-    top_category = category_sum.idxmax()
+    total_expense = category_sum.sum()
 
-    df["day_index"] = np.arange(len(df))
+    top_category = category_sum.idxmax()
+    top_amount = category_sum.max()
+    percentage = round((top_amount / total_expense) * 100, 2)
+
+    if percentage >= 50:
+        insight = f"⚠️ You are heavily overspending on {top_category} ({percentage}% of total expenses)."
+    elif percentage >= 30:
+        insight = f"⚠️ {top_category} is your major expense area ({percentage}%). Keep an eye on it."
+    else:
+        insight = f"✅ Your expenses are well balanced. Highest spending is on {top_category} ({percentage}%)."
+
+    # ----- MONTHLY BUDGET CHECK -----
+    monthly_budget = 10000  # you can change this
+    current_month = df["date"].dt.to_period("M").max()
+    current_month_total = df[df["date"].dt.to_period("M") == current_month]["amount"].sum()
+
+    if current_month_total > monthly_budget:
+        budget_msg = f"🚨 You have exceeded your monthly budget of ₹{monthly_budget}."
+    else:
+        budget_msg = f"✅ You are within your monthly budget of ₹{monthly_budget}."
+
+    # ----- ML PREDICTION -----
+    df = df.sort_values("date")
+    df["day_index"] = range(len(df))
+
     model = LinearRegression()
     model.fit(df[["day_index"]], df["amount"])
 
-    prediction = round(model.predict([[df["day_index"].max() + 1]])[0], 2)
+    next_day = [[df["day_index"].max() + 1]]
+    prediction = round(model.predict(next_day)[0], 2)
+
+    prediction_note = "Prediction is based on your past spending trend using Linear Regression."
 
     return render_template(
         "insights.html",
-        insight=f"Highest spending on {top_category}",
-        prediction=prediction
+        insight=insight,
+        prediction=prediction,
+        budget_msg=budget_msg,
+        prediction_note=prediction_note
     )
+
 
 # ---------------- EXPORT ----------------
 @app.route("/export")
@@ -245,3 +285,4 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
