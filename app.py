@@ -8,12 +8,13 @@ import os
 app = Flask(__name__)
 app.secret_key = "expense-secret-key"
 
+DB_NAME = "expenses.db"
+
 # ---------------- INIT DATABASE ----------------
 def init_db():
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
 
-    # USERS TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,14 +23,15 @@ def init_db():
     )
     """)
 
-    # EXPENSES TABLE ✅ (THIS WAS MISSING)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         date TEXT,
         category TEXT,
         amount REAL,
-        description TEXT
+        description TEXT,
+        user_id INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(id)
     )
     """)
 
@@ -40,7 +42,7 @@ init_db()
 
 # ---------------- DATABASE CONNECTION ----------------
 def get_db_connection():
-    conn = sqlite3.connect("expenses.db")
+    conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -59,7 +61,8 @@ def login():
         conn.close()
 
         if user:
-            session["user"] = username
+            session["user"] = user["username"]
+            session["user_id"] = user["id"]
             return redirect("/")
         else:
             return render_template("login.html", error="Invalid credentials")
@@ -91,20 +94,23 @@ def signup():
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
-    session.pop("user", None)
+    session.clear()
     return redirect("/login")
 
 # ---------------- DASHBOARD ----------------
 @app.route("/")
 def dashboard():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
     conn = get_db_connection()
-    expenses = conn.execute("SELECT * FROM expenses").fetchall()
+    expenses = conn.execute(
+        "SELECT * FROM expenses WHERE user_id=?",
+        (session["user_id"],)
+    ).fetchall()
     conn.close()
 
-    total = sum(e["amount"] for e in expenses) if expenses else 0
+    total = sum(e["amount"] for e in expenses)
 
     categories = {}
     for e in expenses:
@@ -117,11 +123,11 @@ def dashboard():
 
     monthly_labels, monthly_values = [], []
     if expenses:
-        df = pd.DataFrame(expenses, columns=expenses[0].keys())
+        df = pd.DataFrame(expenses)
         df["date"] = pd.to_datetime(df["date"])
         monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
         monthly_labels = [str(m) for m in monthly.index]
-        monthly_values = monthly.values.tolist()
+        monthly_values = monthly.tolist()
 
     return render_template(
         "dashboard.html",
@@ -136,18 +142,22 @@ def dashboard():
 # ---------------- ADD EXPENSE ----------------
 @app.route("/add", methods=["GET", "POST"])
 def add():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
     if request.method == "POST":
         conn = get_db_connection()
         conn.execute(
-            "INSERT INTO expenses (date, category, amount, description) VALUES (?, ?, ?, ?)",
+            """
+            INSERT INTO expenses (date, category, amount, description, user_id)
+            VALUES (?, ?, ?, ?, ?)
+            """,
             (
                 request.form["date"],
                 request.form["category"],
                 request.form["amount"],
-                request.form["description"]
+                request.form["description"],
+                session["user_id"]
             )
         )
         conn.commit()
@@ -159,7 +169,7 @@ def add():
 # ---------------- HISTORY ----------------
 @app.route("/history")
 def history():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
     page = int(request.args.get("page", 1))
@@ -171,11 +181,12 @@ def history():
     expenses = conn.execute(
         """
         SELECT * FROM expenses
-        WHERE category LIKE ? OR description LIKE ?
+        WHERE user_id=?
+        AND (category LIKE ? OR description LIKE ?)
         ORDER BY date DESC
         LIMIT ? OFFSET ?
         """,
-        (f"%{search}%", f"%{search}%", limit, offset)
+        (session["user_id"], f"%{search}%", f"%{search}%", limit, offset)
     ).fetchall()
     conn.close()
 
@@ -186,17 +197,18 @@ def history():
         search=search
     )
 
-
-    return render_template("history.html", expenses=expenses)
-
 # ---------------- AI INSIGHTS ----------------
 @app.route("/insights")
 def insights():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
     conn = get_db_connection()
-    df = pd.read_sql_query("SELECT * FROM expenses", conn)
+    df = pd.read_sql_query(
+        "SELECT * FROM expenses WHERE user_id=?",
+        conn,
+        params=(session["user_id"],)
+    )
     conn.close()
 
     if df.empty:
@@ -220,13 +232,16 @@ def insights():
 # ---------------- EXPORT ----------------
 @app.route("/export")
 def export():
-    if "user" not in session:
+    if "user_id" not in session:
         return redirect("/login")
 
     conn = get_db_connection()
-    df = pd.read_sql_query("SELECT * FROM expenses", conn)
+    df = pd.read_sql_query(
+        "SELECT * FROM expenses WHERE user_id=?",
+        conn,
+        params=(session["user_id"],)
+    )
     conn.close()
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
-
