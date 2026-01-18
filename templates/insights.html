@@ -1,18 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="dashboard-title">AI Insights</h2>
+<h2 class="dashboard-title">🤖 AI Insights</h2>
 
 <div class="card-grid">
 
+    <!-- Spending Insight -->
     <div class="card alert-card">
-        <h3>Spending Insight</h3>
+        <h3>📊 Spending Insight</h3>
         <p>{{ insight }}</p>
     </div>
 
+    <!-- Prediction -->
     <div class="card prediction-card">
-        <h3>Predicted Next Expense</h3>
-        <p>₹ {{ prediction }}</p>
+        <h3>🔮 Predicted Next Expense</h3>
+        <p class="big-amount">₹ {{ prediction }}</p>
+        {% if prediction_note %}
+            <small class="note">{{ prediction_note }}</small>
+        {% endif %}
+    </div>
+
+    <!-- Budget Status -->
+    <div class="card budget-card">
+        <h3>💰 Monthly Budget Status</h3>
+        <p>{{ budget_msg }}</p>
     </div>
 
 </div>
