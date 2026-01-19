@@ -4,20 +4,22 @@
     <meta charset="UTF-8">
     <title>AI Personal Expense Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
 
 <!-- NAVBAR -->
 <nav class="navbar">
     <div class="nav-left">
-        <h2>💰 Expense Tracker</h2>
+        💰 <strong>Expense Tracker</strong>
     </div>
 
     <div class="nav-right">
+        <span class="username">👋 {{ session.get("user") }}</span>
         <a href="/">Dashboard</a>
-        <a href="/add">Add Expense</a>
+        <a href="/add">Add</a>
         <a href="/history">History</a>
-        <a href="/insights">AI Insights</a>
+        <a href="/insights">AI</a>
         <a href="/logout" class="logout">Logout</a>
     </div>
 </nav>
@@ -29,5 +31,3 @@
 
 </body>
 </html>
-
-
