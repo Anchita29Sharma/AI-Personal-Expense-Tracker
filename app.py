@@ -110,49 +110,22 @@ def dashboard():
     ).fetchall()
     conn.close()
 
-    # ---- SAFE DEFAULTS ----
-    total = 0
-    top_category = "N/A"
-    chart_labels = []
-    chart_values = []
-    monthly_labels = []
-    monthly_values = []
+    total = sum(e["amount"] for e in expenses) if expenses else 0
 
-    if expenses:
-        # total
-        total = sum(float(e["amount"]) for e in expenses if e["amount"] is not None)
+    categories = {}
+    for e in expenses:
+        categories[e["category"]] = categories.get(e["category"], 0) + e["amount"]
 
-        # category-wise
-        categories = {}
-        for e in expenses:
-            if e["category"] and e["amount"] is not None:
-                categories[e["category"]] = categories.get(e["category"], 0) + float(e["amount"])
-
-        if categories:
-            top_category = max(categories, key=categories.get)
-            chart_labels = list(categories.keys())
-            chart_values = list(categories.values())
-
-        # monthly trend (SAFE)
-        try:
-            df = pd.DataFrame(expenses)
-            df["date"] = pd.to_datetime(df["date"], errors="coerce")
-            df = df.dropna(subset=["date"])
-            monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
-            monthly_labels = [str(m) for m in monthly.index]
-            monthly_values = monthly.values.tolist()
-        except Exception:
-            pass  # prevent crash
+    top_category = max(categories, key=categories.get) if categories else "N/A"
 
     return render_template(
         "dashboard.html",
         total=total,
         category=top_category,
-        chart_labels=chart_labels,
-        chart_values=chart_values,
-        monthly_labels=monthly_labels,
-        monthly_values=monthly_values
+        chart_labels=list(categories.keys()),
+        chart_values=list(categories.values())
     )
+
 
 # ---------------- ADD EXPENSE ----------------
 @app.route("/add", methods=["GET", "POST"])
@@ -330,6 +303,7 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
 
