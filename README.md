@@ -72,3 +72,7 @@ It helps users track expenses, analyze spending patterns, and get AI-powered ins
 ```bash
 git clone https://github.com/Anchita29Sharma/AI-Personal-Expense-Tracker.git
 cd AI-Personal-Expense-Tracker
+⚠️ Note:
+This project uses SQLite on Render Free Tier.
+Data resets on redeploy due to ephemeral storage.
+In production, a persistent DB (PostgreSQL) is recommended.
