@@ -211,6 +211,46 @@ def history():
         page=page,
         search=search
     )
+# ---------------- EDIT EXPENSE ----------------
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit(id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+
+    # Get expense (ONLY for logged-in user)
+    expense = conn.execute(
+        "SELECT * FROM expenses WHERE id=? AND user_id=?",
+        (id, session["user_id"])
+    ).fetchone()
+
+    if not expense:
+        conn.close()
+        return redirect("/history")
+
+    if request.method == "POST":
+        conn.execute(
+            """
+            UPDATE expenses
+            SET date=?, category=?, amount=?, description=?
+            WHERE id=? AND user_id=?
+            """,
+            (
+                request.form["date"],
+                request.form["category"],
+                request.form["amount"],
+                request.form["description"],
+                id,
+                session["user_id"]
+            )
+        )
+        conn.commit()
+        conn.close()
+        return redirect("/history")
+
+    conn.close()
+    return render_template("edit_expense.html", expense=expense)
 
 # ---------------- DELETE EXPENSE (FIXED) ----------------
 @app.route("/delete/<int:id>")
@@ -290,6 +330,7 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
 
