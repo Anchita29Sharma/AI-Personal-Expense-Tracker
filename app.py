@@ -238,11 +238,41 @@ def insights():
     if df.empty:
         return render_template(
             "insights.html",
-            insight="No data available yet.",
+            insight="No expenses added yet.",
             prediction="N/A",
-            budget_msg="Add expenses to get insights.",
-            prediction_note=""
+            personality="Not enough data",
+            personality_msg="Add expenses to see your spending personality."
         )
+
+    # ---------------- BASIC CALCULATIONS ----------------
+    avg_spend = df["amount"].mean()
+    max_spend = df["amount"].max()
+
+    # ---------------- PERSONALITY LOGIC ----------------
+    if max_spend > 3 * avg_spend:
+        personality = "🔥 Impulsive Spender"
+        personality_msg = "You make sudden high-value purchases. Try planning expenses."
+    elif avg_spend < 300:
+        personality = "🐢 Saver"
+        personality_msg = "You spend carefully and save well. Great discipline!"
+    elif 300 <= avg_spend <= 800:
+        personality = "⚖️ Balanced Spender"
+        personality_msg = "Your spending is healthy and well-managed."
+    else:
+        personality = "🐅 Spender"
+        personality_msg = "You spend more than average. Consider budgeting."
+
+    # ---------------- SIMPLE INSIGHT ----------------
+    insight = f"Your average spending per expense is ₹{round(avg_spend, 2)}."
+
+    return render_template(
+        "insights.html",
+        insight=insight,
+        prediction="N/A",
+        personality=personality,
+        personality_msg=personality_msg
+    )
+
 
     # ----- PREPARE DATA -----
     df["date"] = pd.to_datetime(df["date"])
@@ -309,6 +339,7 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
 
