@@ -108,29 +108,49 @@ def dashboard():
 
     conn = get_db_connection()
     expenses = conn.execute(
-        "SELECT * FROM expenses WHERE user_id=?",
+        "SELECT date, category, amount FROM expenses WHERE user_id=?",
         (session["user_id"],)
     ).fetchall()
     conn.close()
 
-    total = sum(e["amount"] for e in expenses)
-
+    # ---- TOTAL ----
+    total = 0
     categories = {}
+
+    safe_data = []
+
     for e in expenses:
-        categories[e["category"]] = categories.get(e["category"], 0) + e["amount"]
+        try:
+            amount = float(e["amount"])
+            total += amount
+
+            categories[e["category"]] = categories.get(e["category"], 0) + amount
+
+            safe_data.append({
+                "date": e["date"],
+                "amount": amount
+            })
+        except:
+            continue   # skip broken rows safely
 
     top_category = max(categories, key=categories.get) if categories else "N/A"
 
     chart_labels = list(categories.keys())
     chart_values = list(categories.values())
 
-    monthly_labels, monthly_values = [], []
-    if expenses:
-        df = pd.DataFrame(expenses)
-        df["date"] = pd.to_datetime(df["date"])
-        monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
-        monthly_labels = [str(m) for m in monthly.index]
-        monthly_values = monthly.values.tolist()
+    # ---- MONTHLY TREND (100% SAFE) ----
+    monthly_labels = []
+    monthly_values = []
+
+    if safe_data:
+        df = pd.DataFrame(safe_data)
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df = df.dropna()
+
+        if not df.empty:
+            monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
+            monthly_labels = [str(m) for m in monthly.index]
+            monthly_values = monthly.values.tolist()
 
     return render_template(
         "dashboard.html",
@@ -141,6 +161,7 @@ def dashboard():
         monthly_labels=monthly_labels,
         monthly_values=monthly_values
     )
+
 
 # ---------------- ADD EXPENSE ----------------
 @app.route("/add", methods=["GET", "POST"])
@@ -288,6 +309,7 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
 
