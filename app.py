@@ -70,26 +70,26 @@ def login():
     return render_template("login.html")
 
 # ---------------- SIGNUP ----------------
-#@app.route("/signup", methods=["GET", "POST"])
-# def signup():
-#     if request.method == "POST":
-#         username = request.form["username"]
-#         password = generate_password_hash(request.form["password"])
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = generate_password_hash(request.form["password"])
 
-#         conn = get_db_connection()
-#         try:
-#             conn.execute(
-#                 "INSERT INTO users (username, password) VALUES (?, ?)",
-#                 (username, password)
-#             )
-#             conn.commit()
-#             conn.close()
-#             return redirect("/login")
-#         except sqlite3.IntegrityError:
-#             conn.close()
-#             return render_template("signup.html", error="Username already exists")
+        conn = get_db_connection()
+        try:
+            conn.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (username, password)
+            )
+            conn.commit()
+            conn.close()
+            return redirect("/login")
+        except sqlite3.IntegrityError:
+            conn.close()
+            return render_template("signup.html", error="Username already exists")
 
-#     return render_template("signup.html")
+    return render_template("signup.html")
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
@@ -276,4 +276,5 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
