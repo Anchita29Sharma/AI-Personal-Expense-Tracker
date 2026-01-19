@@ -260,6 +260,51 @@ def insights():
         prediction_note="Prediction based on past expenses"
     )
 
+@app.route("/profile")
+def profile():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+    expenses = conn.execute(
+        "SELECT * FROM expenses WHERE user_id=?",
+        (session["user_id"],)
+    ).fetchall()
+    conn.close()
+
+    total = sum(e["amount"] for e in expenses) if expenses else 0
+    count = len(expenses)
+
+    # Category analysis
+    categories = {}
+    for e in expenses:
+        categories[e["category"]] = categories.get(e["category"], 0) + e["amount"]
+
+    top_category = max(categories, key=categories.get) if categories else "N/A"
+
+    # Spending Personality Logic
+    avg = total / count if count else 0
+
+    if avg < 500:
+        personality = "Saver 🐢"
+        msg = "You spend carefully and avoid unnecessary expenses."
+    elif avg < 1500:
+        personality = "Balanced ⚖️"
+        msg = "You maintain a healthy spending balance."
+    else:
+        personality = "Spender 🔥"
+        msg = "You spend more than average. Consider budgeting."
+
+    return render_template(
+        "profile.html",
+        username=session["user"],
+        total=total,
+        count=count,
+        top_category=top_category,
+        personality=personality,
+        personality_msg=msg
+    )
+
 # ---------------- EXPORT ----------------
 @app.route("/export")
 def export():
@@ -276,5 +321,6 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
