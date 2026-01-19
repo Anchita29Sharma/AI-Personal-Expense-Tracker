@@ -95,3 +95,14 @@ form input {
 .prediction-card {
     border-left: 6px solid #2563eb;
 }
+
+.personality-card {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    color: white;
+}
+
+.personality-card h2 {
+    font-size: 24px;
+    margin-top: 10px;
+}
+
