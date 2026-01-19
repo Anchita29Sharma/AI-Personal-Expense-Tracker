@@ -341,6 +341,25 @@ def export():
     return send_file("expenses_export.csv", as_attachment=True)
 
 
+# ---------------- DELETE EXPENSE ----------------
+@app.route("/delete/<int:id>")
+def delete(id):
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+    conn.execute(
+        "DELETE FROM expenses WHERE id=? AND user_id=?",
+        (id, session["user_id"])
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect("/history")
+
+
+
+
 
 
 
