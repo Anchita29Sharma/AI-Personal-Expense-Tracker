@@ -110,24 +110,39 @@ def dashboard():
     ).fetchall()
     conn.close()
 
-    total = sum(e["amount"] for e in expenses) if expenses else 0
+    # ---- SAFE DEFAULTS ----
+    total = 0
+    top_category = "N/A"
+    chart_labels = []
+    chart_values = []
+    monthly_labels = []
+    monthly_values = []
 
-    categories = {}
-    for e in expenses:
-        categories[e["category"]] = categories.get(e["category"], 0) + e["amount"]
-
-    top_category = max(categories, key=categories.get) if categories else "N/A"
-
-    chart_labels = list(categories.keys())
-    chart_values = list(categories.values())
-
-    monthly_labels, monthly_values = [], []
     if expenses:
-        df = pd.DataFrame(expenses)
-        df["date"] = pd.to_datetime(df["date"])
-        monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
-        monthly_labels = [str(m) for m in monthly.index]
-        monthly_values = monthly.values.tolist()
+        # total
+        total = sum(float(e["amount"]) for e in expenses if e["amount"] is not None)
+
+        # category-wise
+        categories = {}
+        for e in expenses:
+            if e["category"] and e["amount"] is not None:
+                categories[e["category"]] = categories.get(e["category"], 0) + float(e["amount"])
+
+        if categories:
+            top_category = max(categories, key=categories.get)
+            chart_labels = list(categories.keys())
+            chart_values = list(categories.values())
+
+        # monthly trend (SAFE)
+        try:
+            df = pd.DataFrame(expenses)
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            df = df.dropna(subset=["date"])
+            monthly = df.groupby(df["date"].dt.to_period("M"))["amount"].sum()
+            monthly_labels = [str(m) for m in monthly.index]
+            monthly_values = monthly.values.tolist()
+        except Exception:
+            pass  # prevent crash
 
     return render_template(
         "dashboard.html",
@@ -275,6 +290,7 @@ def export():
 
     df.to_csv("expenses_export.csv", index=False)
     return send_file("expenses_export.csv", as_attachment=True)
+
 
 
 
